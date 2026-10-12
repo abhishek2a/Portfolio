@@ -5,14 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Abhishek S | Commerce graduate and ACCA student</title>
 <meta name="description" content="Abhishek S is a B.Com graduate from the University of Kerala, studying for ACCA, with training in accounting and warehouse and inventory management.">
-<meta name="theme-color" content="#0f1814">
+<meta name="theme-color" content="#f2f5f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1814" media="(prefers-color-scheme: dark)">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://formspree.io; form-action https://formspree.io; base-uri 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Abhishek S | Commerce graduate and ACCA student">
 <meta property="og:description" content="B.Com graduate, ACCA student, trained in warehouse and inventory management. Get in touch.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f6f5e'/%3E%3Ctext x='32' y='45' font-size='36' font-family='Arial' font-weight='700' text-anchor='middle' fill='white'%3EA%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap"></noscript>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Person","name":"Abhishek S","sameAs":["https://www.linkedin.com/in/abhishek-s-6b6a352b6/"],"alumniOf":"University of Kerala"}
 </script>
@@ -38,7 +42,9 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+  html{scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+  @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+  @media print{.site-header,.hero,.btns,form,.skip{display:none}section{padding:20px 0}}
   body{font-family:var(--body);background:var(--paper);color:var(--ink);line-height:1.65;font-size:1.0625rem}
   a{color:inherit}
   img,svg{max-width:100%}
@@ -203,7 +209,7 @@
   <div class="hero" id="home">
     <div class="wrap">
       <div>
-        <h1>Commerce graduate. Studying for ACCA.</h1>
+        <h1>Building a career in accounting and financial reporting.</h1>
         <p class="lede-box"><span class="lede">I'm Abhishek, from Kerala. I hold a B.Com from the University of Kerala and I'm building on it with ACCA, plus practical training in accounting and in warehouse and inventory management.</span></p>
         <div class="btns">
           <a class="btn btn-solid" href="#contact">Send me a message</a>
@@ -355,13 +361,18 @@
   /* Mobile menu */
   var menuBtn = document.getElementById("menuBtn");
   var menu = document.getElementById("menu");
-  function closeMenu(){ menu.classList.remove("open"); menuBtn.setAttribute("aria-expanded","false"); }
-  menuBtn.addEventListener("click", function () {
-    var open = menu.classList.toggle("open");
-    menuBtn.setAttribute("aria-expanded", open);
+  function setMenu(open){
+    menu.classList.toggle("open", open);
+    menuBtn.setAttribute("aria-expanded", String(open));
+    menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  }
+  menuBtn.addEventListener("click", function () { setMenu(!menu.classList.contains("open")); });
+  menu.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", function () { setMenu(false); }); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") setMenu(false); });
+  document.addEventListener("click", function (e) {
+    if (!menu.contains(e.target) && !menuBtn.contains(e.target)) setMenu(false);
   });
-  menu.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", closeMenu); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenu(); });
+  window.addEventListener("resize", function () { if (window.innerWidth > 720) setMenu(false); });
 
   /* Highlight the current section in the menu */
   var links = {};
@@ -404,8 +415,14 @@
     var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     fieldError("email", emailOk ? "" : "Enter a valid email address, like name@example.com."); if (!emailOk) ok = false;
     fieldError("message", message ? "" : "Write a short message."); if (!message) ok = false;
-    if (!ok) { setStatus("Please fix the highlighted fields.", "err"); return; }
+    if (!ok) {
+      setStatus("Please fix the highlighted fields.", "err");
+      var bad = form.querySelector("[aria-invalid='true']");
+      if (bad) bad.focus();
+      return;
+    }
 
+    if (sendBtn.disabled) return;
     sendBtn.disabled = true; sendBtn.textContent = "Sending...";
     setStatus("");
     fetch(FORM_ENDPOINT, {
